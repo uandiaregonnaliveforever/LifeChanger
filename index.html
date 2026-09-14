@@ -541,12 +541,14 @@
   const LIMITE_AMARELO = 3; // diferença até este valor: amarelo; acima: vermelho
 
   // Rótulos usados nos selos de diferença de cada medida (texto exibido nos cards)
-  // e nos avisos de "não encontramos peça nessa direção". Sigla aparece no chip;
-  // tagMaior/tagMenor descrevem o sentido da diferença em relação à sua peça.
+  // e nos avisos de "não encontramos peça nessa direção". "rotulo" é o nome por
+  // extenso da medida (aparece no chip); tagMaior/tagMenor descrevem o sentido da
+  // diferença em relação à sua peça. Manga é medida em COMPRIMENTO (ombro à ponta),
+  // não em largura — por isso usa "mais comprida"/"mais curta", igual ao comprimento.
   const CONFIG_MEDIDAS = {
-    largura: { sigla: "L", tagMaior: "mais larga", tagMenor: "mais estreita" },
-    comprimento: { sigla: "C", tagMaior: "mais comprida", tagMenor: "mais curta" },
-    manga: { sigla: "M", tagMaior: "manga mais longa", tagMenor: "manga mais justa" }
+    largura: { rotulo: "Largura", tagMaior: "mais larga", tagMenor: "mais estreita" },
+    comprimento: { rotulo: "Comprimento", tagMaior: "mais comprida", tagMenor: "mais curta" },
+    manga: { rotulo: "Manga", tagMaior: "mais comprida", tagMenor: "mais curta" }
   };
 
   // Frases usadas quando NENHUMA peça da base tem a medida na direção que o
@@ -561,8 +563,8 @@
       menor: "Não encontramos nenhuma peça mais curta que a sua na base — mostrando as mais próximas."
     },
     manga: {
-      maior: "Não encontramos nenhuma peça com manga mais longa que a sua na base — mostrando as mais próximas.",
-      menor: "Não encontramos nenhuma peça com manga mais justa que a sua na base — mostrando as mais próximas."
+      maior: "Não encontramos nenhuma peça com manga mais comprida que a sua na base — mostrando as mais próximas.",
+      menor: "Não encontramos nenhuma peça com manga mais curta que a sua na base — mostrando as mais próximas."
     }
   };
 
@@ -902,7 +904,7 @@
     };
 
     elTextoAlvo.textContent =
-      `Você pediu: L ${formatarAjuste(ajustes.largura)} · C ${formatarAjuste(ajustes.comprimento)} · M ${formatarAjuste(ajustes.manga)}`;
+      `Você pediu: Largura ${formatarAjuste(ajustes.largura)} · Comprimento ${formatarAjuste(ajustes.comprimento)} · Manga ${formatarAjuste(ajustes.manga)}`;
 
     const familiaReferencia = familiaDoTecido(pecaReferencia.tecido);
 
@@ -1055,11 +1057,11 @@
 
     let texto;
     if (Math.abs(diffArredondada) < 0.05) {
-      texto = `${cfg.sigla}: igual à sua`;
+      texto = `${cfg.rotulo}: igual à sua`;
     } else {
       const sinal = diffArredondada > 0 ? "+" : "";
       const tag = diffArredondada > 0 ? cfg.tagMaior : cfg.tagMenor;
-      texto = `${cfg.sigla}: ${sinal}${formatarCm(diffArredondada)} · ${tag}`;
+      texto = `${cfg.rotulo}: ${sinal}${formatarCm(diffArredondada)} · ${tag}`;
     }
 
     // Sem alvo (medida em "Tanto faz"): não há pedido pra comparar, então o selo fica
