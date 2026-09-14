@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camiseta certa pelo caimento</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root {
+    --cor-fundo: #f7f6f3;
+    --cor-texto: #262420;
+    --cor-texto-suave: #6b6862;
+    --cor-borda: #e2ddd4;
+    --cor-superficie: #ffffff;
+    --cor-primaria: #22201c;
+    --cor-primaria-texto: #ffffff;
+    --cor-verde: #1f7a3f;
+    --cor-verde-fundo: #e6f4ea;
+    --cor-amarelo: #8a6d00;
+    --cor-amarelo-fundo: #fbf3d9;
+    --cor-vermelho: #a3311f;
+    --cor-vermelho-fundo: #fbe9e6;
+    --raio: 10px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--cor-fundo);
+    color: var(--cor-texto);
+    line-height: 1.45;
+  }
+
+  .container {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 20px 16px 64px;
+  }
+
+  header.topo {
+    padding: 28px 0 8px;
+  }
+
+  header.topo h1 {
+    font-size: 1.5rem;
+    margin: 0 0 4px;
+  }
+
+  header.topo p {
+    margin: 0;
+    color: var(--cor-texto-suave);
+    font-size: 0.95rem;
+  }
+
+  .etapa {
+    background: var(--cor-superficie);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio);
+    padding: 20px;
+    margin-top: 20px;
+  }
+
+  .etapa h2 {
+    font-size: 1.1rem;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .etapa h2 .numero {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--cor-primaria);
+    color: var(--cor-primaria-texto);
+    font-size: 0.8rem;
+    flex: none;
+  }
+
+  .etapa .subtitulo {
+    color: var(--cor-texto-suave);
+    font-size: 0.88rem;
+    margin: 0 0 16px;
+  }
+
+  .campo-linha {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  @media (max-width: 560px) {
+    .campo-linha { grid-template-columns: 1fr; }
+  }
+
+  label {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--cor-texto-suave);
+    margin-bottom: 4px;
+  }
+
+  select, input[type="number"] {
+    width: 100%;
+    padding: 10px 10px;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    background: var(--cor-superficie);
+    color: var(--cor-texto);
+    font-size: 0.95rem;
+  }
+
+  select:disabled {
+    background: #f1efe9;
+    color: #aaa599;
+  }
+
+  .medidas-ref {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: #f1efe9;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    display: none;
+  }
+
+  .medidas-ref.visivel { display: block; }
+
+  .medidas-ref strong { display: block; margin-bottom: 6px; }
+
+  .medidas-ref .grid-medidas {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  @media (max-width: 560px) {
+    .medidas-ref .grid-medidas { grid-template-columns: 1fr 1fr; }
+  }
+
+  .medidas-ref .item-medida .rotulo { color: var(--cor-texto-suave); font-size: 0.78rem; }
+  .medidas-ref .item-medida .valor { font-weight: 600; }
+
+  .toggle-modo {
+    display: inline-flex;
+    border: 1px solid var(--cor-borda);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+
+  .toggle-modo button {
+    border: none;
+    background: var(--cor-superficie);
+    padding: 7px 16px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--cor-texto-suave);
+  }
+
+  .toggle-modo button.ativo {
+    background: var(--cor-primaria);
+    color: var(--cor-primaria-texto);
+  }
+
+  .ajustes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  @media (max-width: 560px) {
+    .ajustes-grid { grid-template-columns: 1fr; }
+  }
+
+  .ajuste-item .rotulo-medida {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+  }
+
+  .ajuste-item .unidade {
+    font-size: 0.78rem;
+    color: var(--cor-texto-suave);
+  }
+
+  .resultados-cabecalho {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .resultados-cabecalho .alvo {
+    font-size: 0.82rem;
+    color: var(--cor-texto-suave);
+  }
+
+  .lista-resultados {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  .card {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 14px;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio);
+    padding: 14px;
+    background: var(--cor-superficie);
+  }
+
+  @media (max-width: 480px) {
+    .card { grid-template-columns: 72px 1fr; gap: 10px; padding: 12px; }
+  }
+
+  .card .foto {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #eee;
+    border: 1px solid var(--cor-borda);
+  }
+
+  .card .foto-placeholder {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 8px;
+    background: #ece8e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #9a9488;
+    border: 1px solid var(--cor-borda);
+  }
+
+  .card .topo-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .card .marca-modelo {
+    font-weight: 700;
+    font-size: 0.98rem;
+  }
+
+  .card .tamanho-badge {
+    font-size: 0.75rem;
+    color: var(--cor-texto-suave);
+  }
+
+  .card .preco {
+    font-weight: 700;
+    white-space: nowrap;
+    font-size: 0.95rem;
+  }
+
+  .card .info-tecido {
+    font-size: 0.8rem;
+    color: var(--cor-texto-suave);
+    margin-top: 2px;
+  }
+
+  .diferencas {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .chip-diferenca {
+    font-size: 0.78rem;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+
+  .chip-diferenca.verde { background: var(--cor-verde-fundo); color: var(--cor-verde); }
+  .chip-diferenca.amarelo { background: var(--cor-amarelo-fundo); color: var(--cor-amarelo); }
+  .chip-diferenca.vermelho { background: var(--cor-vermelho-fundo); color: var(--cor-vermelho); }
+
+  .aviso-tecido {
+    margin-top: 8px;
+    font-size: 0.78rem;
+    color: var(--cor-amarelo);
+    background: var(--cor-amarelo-fundo);
+    padding: 6px 8px;
+    border-radius: 6px;
+  }
+
+  .aviso-direcao {
+    font-size: 0.85rem;
+    color: var(--cor-texto-suave);
+    background: #f1efe9;
+    border-left: 3px solid var(--cor-primaria);
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+
+  .link-comprar {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--cor-primaria);
+    text-decoration: underline;
+  }
+
+  .mensagem {
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+
+  .mensagem.erro {
+    background: var(--cor-vermelho-fundo);
+    color: var(--cor-vermelho);
+  }
+
+  .mensagem.carregando {
+    background: #f1efe9;
+    color: var(--cor-texto-suave);
+  }
+
+  .oculto { display: none !important; }
+
+  footer.rodape {
+    text-align: center;
+    color: var(--cor-texto-suave);
+    font-size: 0.78rem;
+    margin-top: 32px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header class="topo">
+    <h1>Camiseta certa pelo caimento</h1>
+    <p>Parta de uma camiseta que você já tem e ajuste as medidas para encontrar o modelo mais parecido.</p>
+  </header>
+
+  <!-- Mensagens globais de carregamento / erro da planilha -->
+  <div id="mensagem-status" class="mensagem carregando" style="margin-top:20px;">Carregando dados da planilha…</div>
+
+  <div id="app-conteudo" class="oculto">
+
+    <!-- ETAPA 1 -->
+    <section class="etapa">
+      <h2><span class="numero">1</span> Peça de referência</h2>
+      <p class="subtitulo">Escolha a camiseta que você já tem e gosta.</p>
+
+      <div class="campo-linha">
+        <div>
+          <label for="select-marca">Marca</label>
+          <select id="select-marca">
+            <option value="">Selecione a marca</option>
+          </select>
+        </div>
+        <div>
+          <label for="select-modelo">Modelo</label>
+          <select id="select-modelo" disabled>
+            <option value="">Selecione o modelo</option>
+          </select>
+        </div>
+        <div>
+          <label for="select-tamanho">Tamanho</label>
+          <select id="select-tamanho" disabled>
+            <option value="">Selecione o tamanho</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="medidas-referencia" class="medidas-ref">
+        <strong>Medidas dessa peça</strong>
+        <div class="grid-medidas">
+          <div class="item-medida">
+            <div class="rotulo">Largura (axila a axila)</div>
+            <div class="valor" id="ref-largura">—</div>
+          </div>
+          <div class="item-medida">
+            <div class="rotulo">Comprimento (ombro à barra)</div>
+            <div class="valor" id="ref-comprimento">—</div>
+          </div>
+          <div class="item-medida">
+            <div class="rotulo">Manga (ombro à ponta)</div>
+            <div class="valor" id="ref-manga">—</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ETAPA 2 -->
+    <section class="etapa">
+      <h2><span class="numero">2</span> Ajustes</h2>
+      <p class="subtitulo">Como você quer que a próxima camiseta seja diferente desta, em cada medida?</p>
+
+      <div class="toggle-modo">
+        <button type="button" id="botao-modo-simples" class="ativo">Modo simples</button>
+        <button type="button" id="botao-modo-preciso">Modo preciso (cm)</button>
+      </div>
+
+      <div class="ajustes-grid">
+        <div class="ajuste-item">
+          <div class="rotulo-medida">Largura</div>
+          <select class="ajuste-simples" data-medida="largura">
+            <option value="-4">Bem menor</option>
+            <option value="-2">Um pouco menor</option>
+            <option value="0" selected>Igual</option>
+            <option value="2">Um pouco maior</option>
+            <option value="4">Bem maior</option>
+          </select>
+          <input type="number" class="ajuste-preciso oculto" data-medida="largura" value="0" step="0.5">
+          <div class="unidade">ajuste em cm sobre a peça de referência</div>
+        </div>
+
+        <div class="ajuste-item">
+          <div class="rotulo-medida">Comprimento</div>
+          <select class="ajuste-simples" data-medida="comprimento">
+            <option value="-4">Bem menor</option>
+            <option value="-2">Um pouco menor</option>
+            <option value="0" selected>Igual</option>
+            <option value="2">Um pouco maior</option>
+            <option value="4">Bem maior</option>
+          </select>
+          <input type="number" class="ajuste-preciso oculto" data-medida="comprimento" value="0" step="0.5">
+          <div class="unidade">ajuste em cm sobre a peça de referência</div>
+        </div>
+
+        <div class="ajuste-item">
+          <div class="rotulo-medida">Manga</div>
+          <select class="ajuste-simples" data-medida="manga">
+            <option value="-4">Bem menor</option>
+            <option value="-2">Um pouco menor</option>
+            <option value="0" selected>Igual</option>
+            <option value="2">Um pouco maior</option>
+            <option value="4">Bem maior</option>
+          </select>
+          <input type="number" class="ajuste-preciso oculto" data-medida="manga" value="0" step="0.5">
+          <div class="unidade">ajuste em cm sobre a peça de referência</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ETAPA 3 -->
+    <section class="etapa">
+      <div class="resultados-cabecalho">
+        <h2><span class="numero">3</span> Resultado</h2>
+        <span class="alvo" id="texto-alvo"></span>
+      </div>
+      <p class="subtitulo">
+        As diferenças abaixo comparam cada peça com a <strong>sua peça de referência</strong> (etapa 1), não com um valor abstrato.
+        A cor do selo mostra o quanto essa peça atende ao ajuste que você pediu na etapa 2 — verde atende bem, vermelho está longe do pedido.
+      </p>
+
+      <div id="avisos-direcao"></div>
+      <div id="resultados-vazio" class="mensagem carregando">Selecione a peça de referência na etapa 1 para ver recomendações.</div>
+      <div id="lista-resultados" class="lista-resultados"></div>
+    </section>
+
+  </div>
+
+  <footer class="rodape">MVP — recomendação por medidas reais da peça, não por tamanho nominal.</footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ===========================================================================
+  // CONFIGURAÇÃO — troque pela URL da planilha Google publicada como CSV.
+  // Google Sheets > Arquivo > Compartilhar > Publicar na web > formato CSV.
+  // ===========================================================================
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTh7ZYnSIvE7VhsgEJkQQfLKpkEti_yUkIhEEEBh3F6cwIN17jnhw-g_5wKxD-ZlMhH9rHpRMj1tZQS/pub?output=csv";
+
+  // Pesos do cálculo de proximidade (score). Menor score = mais parecido com o alvo.
+  // Ajuste esses valores para dar mais ou menos importância a cada medida.
+  const PESO_LARGURA = 1.5;
+  const PESO_COMPRIMENTO = 1.0;
+  const PESO_MANGA = 0.8;
+
+  // Limites (em cm) usados para colorir cada diferença nos cards de resultado.
+  const LIMITE_VERDE = 1;   // diferença até este valor: verde
+  const LIMITE_AMARELO = 3; // diferença até este valor: amarelo; acima: vermelho
+
+  // Rótulos usados nos selos de diferença de cada medida (texto exibido nos cards)
+  // e nos avisos de "não encontramos peça nessa direção". Sigla aparece no chip;
+  // tagMaior/tagMenor descrevem o sentido da diferença em relação à sua peça.
+  const CONFIG_MEDIDAS = {
+    largura: { sigla: "L", tagMaior: "mais larga", tagMenor: "mais estreita" },
+    comprimento: { sigla: "C", tagMaior: "mais comprida", tagMenor: "mais curta" },
+    manga: { sigla: "M", tagMaior: "manga mais longa", tagMenor: "manga mais justa" }
+  };
+
+  // Frases usadas quando NENHUMA peça da base tem a medida na direção que o
+  // usuário pediu (ex.: pediu "mais estreita" mas nada na base é mais estreito).
+  const AVISOS_DIRECAO = {
+    largura: {
+      maior: "Não encontramos nenhuma peça mais larga que a sua na base — mostrando as mais próximas.",
+      menor: "Não encontramos nenhuma peça mais estreita que a sua na base — mostrando as mais próximas."
+    },
+    comprimento: {
+      maior: "Não encontramos nenhuma peça mais comprida que a sua na base — mostrando as mais próximas.",
+      menor: "Não encontramos nenhuma peça mais curta que a sua na base — mostrando as mais próximas."
+    },
+    manga: {
+      maior: "Não encontramos nenhuma peça com manga mais longa que a sua na base — mostrando as mais próximas.",
+      menor: "Não encontramos nenhuma peça com manga mais justa que a sua na base — mostrando as mais próximas."
+    }
+  };
+
+  // Classificação de "família de tecido" por palavras-chave, usada só para decidir
+  // se mostramos o aviso de "caimento pode variar". Edite/adicione palavras-chave
+  // à vontade — a comparação é por substring, sem diferenciar maiúsculas/acentos.
+  const FAMILIAS_TECIDO = {
+    algodao: ["algodao", "algodão", "100% algodao", "penteado", "cardado"],
+    sintetico: ["poliester", "poliéster", "dry fit", "dryfit", "performance", "microfibra"],
+    misto: ["pv", "poliviscose", "algodao poliester", "blend"],
+    linho: ["linho"],
+    moletom: ["moletom", "flanelado"],
+    modal: ["modal"],
+    viscose: ["viscose"]
+  };
+
+  // ===========================================================================
+  // ESTADO
+  // ===========================================================================
+  let pecas = [];              // todas as linhas válidas da planilha
+  let pecaReferencia = null;   // linha selecionada na etapa 1
+  let modoPreciso = false;     // false = modo simples, true = modo preciso
+
+  // ===========================================================================
+  // ELEMENTOS
+  // ===========================================================================
+  const elMensagemStatus = document.getElementById("mensagem-status");
+  const elAppConteudo = document.getElementById("app-conteudo");
+
+  const elSelectMarca = document.getElementById("select-marca");
+  const elSelectModelo = document.getElementById("select-modelo");
+  const elSelectTamanho = document.getElementById("select-tamanho");
+
+  const elMedidasReferencia = document.getElementById("medidas-referencia");
+  const elRefLargura = document.getElementById("ref-largura");
+  const elRefComprimento = document.getElementById("ref-comprimento");
+  const elRefManga = document.getElementById("ref-manga");
+
+  const elBotaoModoSimples = document.getElementById("botao-modo-simples");
+  const elBotaoModoPreciso = document.getElementById("botao-modo-preciso");
+  const elsAjusteSimples = document.querySelectorAll(".ajuste-simples");
+  const elsAjustePreciso = document.querySelectorAll(".ajuste-preciso");
+
+  const elTextoAlvo = document.getElementById("texto-alvo");
+  const elAvisosDirecao = document.getElementById("avisos-direcao");
+  const elResultadosVazio = document.getElementById("resultados-vazio");
+  const elListaResultados = document.getElementById("lista-resultados");
+
+  // ===========================================================================
+  // CARREGAMENTO DO CSV
+  // ===========================================================================
+  function carregarPlanilha() {
+    if (!CSV_URL) {
+      mostrarErro("A URL da planilha (constante CSV_URL) ainda não foi configurada no topo do arquivo.");
+      return;
+    }
+
+    Papa.parse(CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: function (resultado) {
+        if (!resultado || !resultado.data || resultado.data.length === 0) {
+          mostrarErro("A planilha foi carregada, mas não trouxe nenhuma linha de dados.");
+          return;
+        }
+        pecas = converterLinhas(resultado.data);
+        if (pecas.length === 0) {
+          mostrarErro("Nenhuma linha da planilha tinha medidas numéricas válidas (largura, comprimento e manga).");
+          return;
+        }
+        iniciarApp();
+      },
+      error: function (erro) {
+        mostrarErro("Não foi possível carregar a planilha. Verifique se o link CSV está correto e publicado. (" + erro + ")");
+      }
+    });
+  }
+
+  function mostrarErro(texto) {
+    elMensagemStatus.textContent = texto;
+    elMensagemStatus.classList.remove("carregando");
+    elMensagemStatus.classList.add("erro");
+  }
+
+  // Converte as linhas cruas do CSV (tudo string) em objetos com números já
+  // convertidos, descartando linhas sem as três medidas principais.
+  function converterLinhas(linhasCru) {
+    const linhasValidas = [];
+    for (const linha of linhasCru) {
+      const largura = paraNumero(linha.largura);
+      const comprimento = paraNumero(linha.comprimento);
+      const manga = paraNumero(linha.manga);
+
+      if (Number.isNaN(largura) || Number.isNaN(comprimento) || Number.isNaN(manga)) {
+        continue; // linha sem medidas suficientes: fica de fora das recomendações
+      }
+
+      linhasValidas.push({
+        id: (linha.id || "").trim(),
+        marca: (linha.marca || "").trim(),
+        modelo: (linha.modelo || "").trim(),
+        tamanho: (linha.tamanho || "").trim(),
+        largura: largura,
+        comprimento: comprimento,
+        manga: manga,
+        tecido: (linha.tecido || "").trim(),
+        gramatura: paraNumero(linha.gramatura),
+        preco: paraNumero(linha.preco),
+        link: (linha.link || "").trim(),
+        foto: (linha.foto || "").trim()
+      });
+    }
+    return linhasValidas;
+  }
+
+  function paraNumero(valor) {
+    if (valor === undefined || valor === null || valor === "") return NaN;
+    const numero = parseFloat(String(valor).trim());
+    return Number.isNaN(numero) ? NaN : numero;
+  }
+
+  // ===========================================================================
+  // INICIALIZAÇÃO DA UI APÓS CARREGAR OS DADOS
+  // ===========================================================================
+  function iniciarApp() {
+    elMensagemStatus.classList.add("oculto");
+    elAppConteudo.classList.remove("oculto");
+
+    popularMarcas();
+    configurarEventos();
+  }
+
+  function popularMarcas() {
+    const marcas = [...new Set(pecas.map(p => p.marca))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+    elSelectMarca.innerHTML = '<option value="">Selecione a marca</option>' +
+      marcas.map(m => `<option value="${escaparHtml(m)}">${escaparHtml(m)}</option>`).join("");
+  }
+
+  function popularModelos(marca) {
+    const modelos = [...new Set(pecas.filter(p => p.marca === marca).map(p => p.modelo))]
+      .sort((a, b) => a.localeCompare(b, "pt-BR"));
+    elSelectModelo.innerHTML = '<option value="">Selecione o modelo</option>' +
+      modelos.map(m => `<option value="${escaparHtml(m)}">${escaparHtml(m)}</option>`).join("");
+    elSelectModelo.disabled = modelos.length === 0;
+  }
+
+  function popularTamanhos(marca, modelo) {
+    const tamanhos = [...new Set(
+      pecas.filter(p => p.marca === marca && p.modelo === modelo).map(p => p.tamanho)
+    )];
+    elSelectTamanho.innerHTML = '<option value="">Selecione o tamanho</option>' +
+      tamanhos.map(t => `<option value="${escaparHtml(t)}">${escaparHtml(t)}</option>`).join("");
+    elSelectTamanho.disabled = tamanhos.length === 0;
+  }
+
+  function escaparHtml(texto) {
+    const div = document.createElement("div");
+    div.textContent = texto;
+    return div.innerHTML;
+  }
+
+  // ===========================================================================
+  // EVENTOS
+  // ===========================================================================
+  function configurarEventos() {
+    elSelectMarca.addEventListener("change", function () {
+      const marca = elSelectMarca.value;
+      pecaReferencia = null;
+      elMedidasReferencia.classList.remove("visivel");
+
+      elSelectModelo.innerHTML = '<option value="">Selecione o modelo</option>';
+      elSelectTamanho.innerHTML = '<option value="">Selecione o tamanho</option>';
+      elSelectTamanho.disabled = true;
+
+      if (marca) {
+        popularModelos(marca);
+      } else {
+        elSelectModelo.disabled = true;
+      }
+      renderizarResultados();
+    });
+
+    elSelectModelo.addEventListener("change", function () {
+      const marca = elSelectMarca.value;
+      const modelo = elSelectModelo.value;
+      pecaReferencia = null;
+      elMedidasReferencia.classList.remove("visivel");
+
+      elSelectTamanho.innerHTML = '<option value="">Selecione o tamanho</option>';
+
+      if (modelo) {
+        popularTamanhos(marca, modelo);
+      } else {
+        elSelectTamanho.disabled = true;
+      }
+      renderizarResultados();
+    });
+
+    elSelectTamanho.addEventListener("change", function () {
+      const marca = elSelectMarca.value;
+      const modelo = elSelectModelo.value;
+      const tamanho = elSelectTamanho.value;
+
+      pecaReferencia = pecas.find(p => p.marca === marca && p.modelo === modelo && p.tamanho === tamanho) || null;
+      mostrarMedidasReferencia();
+      renderizarResultados();
+    });
+
+    elBotaoModoSimples.addEventListener("click", function () {
+      alternarModo(false);
+    });
+    elBotaoModoPreciso.addEventListener("click", function () {
+      alternarModo(true);
+    });
+
+    elsAjusteSimples.forEach(el => el.addEventListener("change", renderizarResultados));
+    elsAjustePreciso.forEach(el => el.addEventListener("input", renderizarResultados));
+  }
+
+  function mostrarMedidasReferencia() {
+    if (!pecaReferencia) {
+      elMedidasReferencia.classList.remove("visivel");
+      return;
+    }
+    elRefLargura.textContent = pecaReferencia.largura + " cm";
+    elRefComprimento.textContent = pecaReferencia.comprimento + " cm";
+    elRefManga.textContent = pecaReferencia.manga + " cm";
+    elMedidasReferencia.classList.add("visivel");
+  }
+
+  function alternarModo(precisao) {
+    modoPreciso = precisao;
+    elBotaoModoSimples.classList.toggle("ativo", !precisao);
+    elBotaoModoPreciso.classList.toggle("ativo", precisao);
+
+    elsAjusteSimples.forEach(el => el.classList.toggle("oculto", precisao));
+    elsAjustePreciso.forEach(el => el.classList.toggle("oculto", !precisao));
+
+    // Ao trocar de modo, sincroniza o valor preciso com o que estava selecionado no modo simples.
+    if (precisao) {
+      elsAjusteSimples.forEach(elSimples => {
+        const medida = elSimples.dataset.medida;
+        const elPreciso = document.querySelector(`.ajuste-preciso[data-medida="${medida}"]`);
+        elPreciso.value = elSimples.value;
+      });
+    }
+
+    renderizarResultados();
+  }
+
+  // Lê o ajuste atual (em cm) para uma medida, considerando o modo ativo.
+  function lerAjuste(medida) {
+    const seletor = modoPreciso
+      ? `.ajuste-preciso[data-medida="${medida}"]`
+      : `.ajuste-simples[data-medida="${medida}"]`;
+    const el = document.querySelector(seletor);
+    const valor = parseFloat(el.value);
+    return Number.isNaN(valor) ? 0 : valor;
+  }
+
+  // ===========================================================================
+  // FAMÍLIA DE TECIDO (para o aviso de caimento)
+  // ===========================================================================
+  function normalizarTexto(texto) {
+    return (texto || "")
+      .toLowerCase()
+      .normalize("NFD").replace(/[̀-ͯ]/g, ""); // remove acentos
+  }
+
+  function familiaDoTecido(tecido) {
+    const textoNormalizado = normalizarTexto(tecido);
+    for (const familia in FAMILIAS_TECIDO) {
+      const palavras = FAMILIAS_TECIDO[familia];
+      for (const palavra of palavras) {
+        if (textoNormalizado.includes(normalizarTexto(palavra))) {
+          return familia;
+        }
+      }
+    }
+    return "outro";
+  }
+
+  // ===========================================================================
+  // CÁLCULO DE PROXIMIDADE (SCORE) E RENDERIZAÇÃO DOS RESULTADOS
+  // ===========================================================================
+  function renderizarResultados() {
+    if (!pecaReferencia) {
+      elResultadosVazio.classList.remove("oculto");
+      elResultadosVazio.textContent = "Selecione a peça de referência na etapa 1 para ver recomendações.";
+      elListaResultados.innerHTML = "";
+      elTextoAlvo.textContent = "";
+      elAvisosDirecao.innerHTML = "";
+      return;
+    }
+
+    const ajustes = {
+      largura: lerAjuste("largura"),
+      comprimento: lerAjuste("comprimento"),
+      manga: lerAjuste("manga")
+    };
+
+    // Medidas-alvo = medidas da peça de referência + ajuste pedido pelo usuário em cada
+    // dimensão. Usadas só internamente para pontuar/colorir — quem aparece nos cards é
+    // sempre a diferença contra a peça de referência (ver diffRef* abaixo).
+    const alvo = {
+      largura: pecaReferencia.largura + ajustes.largura,
+      comprimento: pecaReferencia.comprimento + ajustes.comprimento,
+      manga: pecaReferencia.manga + ajustes.manga
+    };
+
+    elTextoAlvo.textContent =
+      `Você pediu: L ${formatarAjuste(ajustes.largura)} · C ${formatarAjuste(ajustes.comprimento)} · M ${formatarAjuste(ajustes.manga)}`;
+
+    const familiaReferencia = familiaDoTecido(pecaReferencia.tecido);
+
+    // Todas as candidatas (exceto a própria referência), com duas distâncias calculadas
+    // para cada uma:
+    // - diffRef*: diferença real da peça candidata em relação à SUA peça de referência.
+    //   É o número e a tag (ex.: "mais larga") que aparecem no card.
+    // - diffAlvo*: diferença em relação ao alvo ajustado (referência + ajuste pedido).
+    //   Não aparece na tela — serve só para o score de ordenação e para colorir o selo
+    //   (o quanto essa peça atende ao que foi pedido na etapa 2).
+    const todasCandidatas = pecas
+      .filter(p => p.id !== pecaReferencia.id)
+      .map(p => {
+        const diffRefLargura = p.largura - pecaReferencia.largura;
+        const diffRefComprimento = p.comprimento - pecaReferencia.comprimento;
+        const diffRefManga = p.manga - pecaReferencia.manga;
+
+        const diffAlvoLargura = p.largura - alvo.largura;
+        const diffAlvoComprimento = p.comprimento - alvo.comprimento;
+        const diffAlvoManga = p.manga - alvo.manga;
+
+        // Soma ponderada das distâncias absolutas até o alvo em cada medida.
+        // Pesos maiores em PESO_LARGURA/PESO_COMPRIMENTO/PESO_MANGA (topo do arquivo)
+        // fazem essa medida pesar mais na hora de decidir o que é "parecido".
+        const score =
+          PESO_LARGURA * Math.abs(diffAlvoLargura) +
+          PESO_COMPRIMENTO * Math.abs(diffAlvoComprimento) +
+          PESO_MANGA * Math.abs(diffAlvoManga);
+
+        return {
+          peca: p,
+          diffRefLargura, diffRefComprimento, diffRefManga,
+          diffAlvoLargura, diffAlvoComprimento, diffAlvoManga,
+          score
+        };
+      })
+      .sort((a, b) => a.score - b.score);
+
+    elAvisosDirecao.innerHTML = montarAvisosDirecao(ajustes, todasCandidatas);
+
+    const candidatas = todasCandidatas.slice(0, 10);
+
+    if (candidatas.length === 0) {
+      elResultadosVazio.classList.remove("oculto");
+      elResultadosVazio.textContent = "Nenhuma outra peça encontrada na base para comparar.";
+      elListaResultados.innerHTML = "";
+      return;
+    }
+
+    elResultadosVazio.classList.add("oculto");
+    elListaResultados.innerHTML = candidatas.map(c => renderizarCard(c, familiaReferencia)).join("");
+  }
+
+  // Verifica, para cada medida em que o usuário pediu uma mudança (ajuste != 0), se
+  // existe ALGUMA peça na base (não só entre as top 10) que realmente vá na direção
+  // pedida em relação à referência. Se não existir nenhuma, avisa antes da lista —
+  // que de qualquer forma continua mostrando as mais próximas disponíveis.
+  function montarAvisosDirecao(ajustes, todasCandidatas) {
+    const avisos = [];
+
+    for (const chave in CONFIG_MEDIDAS) {
+      const ajuste = ajustes[chave];
+      if (Math.abs(ajuste) < 0.05) continue; // não pediu mudança nessa medida
+
+      const chaveDiffRef = "diffRef" + chave.charAt(0).toUpperCase() + chave.slice(1);
+      const direcaoPedida = ajuste > 0 ? "maior" : "menor";
+      const sinalPedido = ajuste > 0 ? 1 : -1;
+
+      const existeNaDirecaoPedida = todasCandidatas.some(c => {
+        const diffArredondada = Math.round(c[chaveDiffRef] * 10) / 10;
+        return Math.sign(diffArredondada) === sinalPedido;
+      });
+
+      if (!existeNaDirecaoPedida) {
+        avisos.push(AVISOS_DIRECAO[chave][direcaoPedida]);
+      }
+    }
+
+    return avisos.map(texto => `<div class="aviso-direcao">${escaparHtml(texto)}</div>`).join("");
+  }
+
+  function formatarCm(valor) {
+    return (Math.round(valor * 10) / 10) + "cm";
+  }
+
+  // Formata o ajuste pedido na etapa 2 (não a diferença de uma peça) para o resumo
+  // "Você pediu: ..." no topo da etapa 3.
+  function formatarAjuste(valor) {
+    if (Math.abs(valor) < 0.05) return "igual";
+    const sinal = valor > 0 ? "+" : "";
+    return `${sinal}${formatarCm(valor)}`;
+  }
+
+  function renderizarCard(candidata, familiaReferencia) {
+    const p = candidata.peca;
+
+    const fotoHtml = p.foto
+      ? `<img class="foto" src="${escaparHtml(p.foto)}" alt="${escaparHtml(p.marca + ' ' + p.modelo)}" onerror="this.outerHTML='<div class=&quot;foto-placeholder&quot;>${escaparHtml(iniciais(p.marca))}</div>'">`
+      : `<div class="foto-placeholder">${escaparHtml(iniciais(p.marca))}</div>`;
+
+    const precoHtml = Number.isNaN(p.preco) ? "" : `<div class="preco">${formatarPreco(p.preco)}</div>`;
+
+    const infoTecido = [p.tecido, Number.isNaN(p.gramatura) ? "" : p.gramatura + " g/m²"]
+      .filter(Boolean).join(" · ");
+
+    const familiaCandidata = familiaDoTecido(p.tecido);
+    const avisoTecido = (familiaCandidata !== familiaReferencia)
+      ? `<div class="aviso-tecido">Tecido diferente da referência — o caimento pode variar mesmo com medidas iguais.</div>`
+      : "";
+
+    const linkHtml = p.link
+      ? `<a class="link-comprar" href="${escaparHtml(p.link)}" target="_blank" rel="noopener">Ver na loja ↗</a>`
+      : "";
+
+    return `
+      <div class="card">
+        ${fotoHtml}
+        <div class="conteudo-card">
+          <div class="topo-card">
+            <div>
+              <div class="marca-modelo">${escaparHtml(p.marca)} · ${escaparHtml(p.modelo)}</div>
+              <div class="tamanho-badge">Tamanho ${escaparHtml(p.tamanho)}</div>
+            </div>
+            ${precoHtml}
+          </div>
+          ${infoTecido ? `<div class="info-tecido">${escaparHtml(infoTecido)}</div>` : ""}
+          <div class="diferencas">
+            ${chipDiferenca("largura", candidata.diffRefLargura, candidata.diffAlvoLargura)}
+            ${chipDiferenca("comprimento", candidata.diffRefComprimento, candidata.diffAlvoComprimento)}
+            ${chipDiferenca("manga", candidata.diffRefManga, candidata.diffAlvoManga)}
+          </div>
+          ${avisoTecido}
+          ${linkHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  // Monta o "chip" de uma medida. O texto mostrado (número + tag como "mais larga")
+  // é SEMPRE a diferença real contra a peça de referência do usuário — nunca contra
+  // o alvo ajustado. A cor, por outro lado, reflete o quão perto essa peça está do
+  // alvo (ou seja, o quanto ela atende ao ajuste pedido na etapa 2): verde até
+  // LIMITE_VERDE cm de distância do alvo, amarelo até LIMITE_AMARELO, vermelho acima.
+  function chipDiferenca(chave, diffReferencia, diffAlvo) {
+    const cfg = CONFIG_MEDIDAS[chave];
+    const diffArredondada = Math.round(diffReferencia * 10) / 10;
+
+    let texto;
+    if (Math.abs(diffArredondada) < 0.05) {
+      texto = `${cfg.sigla}: igual à sua`;
+    } else {
+      const sinal = diffArredondada > 0 ? "+" : "";
+      const tag = diffArredondada > 0 ? cfg.tagMaior : cfg.tagMenor;
+      texto = `${cfg.sigla}: ${sinal}${formatarCm(diffArredondada)} · ${tag}`;
+    }
+
+    const absolutaAlvo = Math.abs(diffAlvo);
+    let cor = "vermelho";
+    if (absolutaAlvo <= LIMITE_VERDE) cor = "verde";
+    else if (absolutaAlvo <= LIMITE_AMARELO) cor = "amarelo";
+
+    return `<span class="chip-diferenca ${cor}">${texto}</span>`;
+  }
+
+  function iniciais(texto) {
+    return (texto || "").trim().split(/\s+/).map(p => p[0]).join("").slice(0, 3).toUpperCase() || "?";
+  }
+
+  function formatarPreco(valor) {
+    return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  // ===========================================================================
+  carregarPlanilha();
+})();
+</script>
+
+</body>
+</html>
