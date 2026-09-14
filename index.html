@@ -116,9 +116,29 @@
     font-size: 0.95rem;
   }
 
-  select:disabled {
+  select:disabled, input[type="number"]:disabled {
     background: #f1efe9;
     color: #aaa599;
+  }
+
+  .ajuste-preciso-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ajuste-preciso-wrapper input[type="number"] {
+    flex: 1;
+  }
+
+  .rotulo-tanto-faz {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.8rem;
+    color: var(--cor-texto-suave);
+    white-space: nowrap;
+    cursor: pointer;
   }
 
   .medidas-ref {
@@ -294,6 +314,7 @@
   .chip-diferenca.verde { background: var(--cor-verde-fundo); color: var(--cor-verde); }
   .chip-diferenca.amarelo { background: var(--cor-amarelo-fundo); color: var(--cor-amarelo); }
   .chip-diferenca.vermelho { background: var(--cor-vermelho-fundo); color: var(--cor-vermelho); }
+  .chip-diferenca.neutro { background: #ece8e0; color: var(--cor-texto-suave); }
 
   .aviso-tecido {
     margin-top: 8px;
@@ -426,8 +447,14 @@
             <option value="0" selected>Igual</option>
             <option value="2">Um pouco maior</option>
             <option value="4">Bem maior</option>
+            <option value="na">Tanto faz</option>
           </select>
-          <input type="number" class="ajuste-preciso oculto" data-medida="largura" value="0" step="0.5">
+          <div class="ajuste-preciso-wrapper oculto">
+            <input type="number" class="ajuste-preciso" data-medida="largura" value="0" step="0.5">
+            <label class="rotulo-tanto-faz">
+              <input type="checkbox" class="ajuste-tanto-faz" data-medida="largura"> Tanto faz
+            </label>
+          </div>
           <div class="unidade">ajuste em cm sobre a peça de referência</div>
         </div>
 
@@ -439,8 +466,14 @@
             <option value="0" selected>Igual</option>
             <option value="2">Um pouco maior</option>
             <option value="4">Bem maior</option>
+            <option value="na">Tanto faz</option>
           </select>
-          <input type="number" class="ajuste-preciso oculto" data-medida="comprimento" value="0" step="0.5">
+          <div class="ajuste-preciso-wrapper oculto">
+            <input type="number" class="ajuste-preciso" data-medida="comprimento" value="0" step="0.5">
+            <label class="rotulo-tanto-faz">
+              <input type="checkbox" class="ajuste-tanto-faz" data-medida="comprimento"> Tanto faz
+            </label>
+          </div>
           <div class="unidade">ajuste em cm sobre a peça de referência</div>
         </div>
 
@@ -452,8 +485,14 @@
             <option value="0" selected>Igual</option>
             <option value="2">Um pouco maior</option>
             <option value="4">Bem maior</option>
+            <option value="na">Tanto faz</option>
           </select>
-          <input type="number" class="ajuste-preciso oculto" data-medida="manga" value="0" step="0.5">
+          <div class="ajuste-preciso-wrapper oculto">
+            <input type="number" class="ajuste-preciso" data-medida="manga" value="0" step="0.5">
+            <label class="rotulo-tanto-faz">
+              <input type="checkbox" class="ajuste-tanto-faz" data-medida="manga"> Tanto faz
+            </label>
+          </div>
           <div class="unidade">ajuste em cm sobre a peça de referência</div>
         </div>
       </div>
@@ -566,6 +605,8 @@
   const elBotaoModoPreciso = document.getElementById("botao-modo-preciso");
   const elsAjusteSimples = document.querySelectorAll(".ajuste-simples");
   const elsAjustePreciso = document.querySelectorAll(".ajuste-preciso");
+  const elsAjustePrecisoWrapper = document.querySelectorAll(".ajuste-preciso-wrapper");
+  const elsAjusteTantoFaz = document.querySelectorAll(".ajuste-tanto-faz");
 
   const elTextoAlvo = document.getElementById("texto-alvo");
   const elAvisosDirecao = document.getElementById("avisos-direcao");
@@ -742,6 +783,14 @@
 
     elsAjusteSimples.forEach(el => el.addEventListener("change", renderizarResultados));
     elsAjustePreciso.forEach(el => el.addEventListener("input", renderizarResultados));
+
+    // No modo preciso, marcar "Tanto faz" desabilita o campo numérico daquela medida.
+    elsAjusteTantoFaz.forEach(el => el.addEventListener("change", function () {
+      const medida = el.dataset.medida;
+      const elPreciso = document.querySelector(`.ajuste-preciso[data-medida="${medida}"]`);
+      elPreciso.disabled = el.checked;
+      renderizarResultados();
+    }));
   }
 
   function mostrarMedidasReferencia() {
@@ -761,14 +810,23 @@
     elBotaoModoPreciso.classList.toggle("ativo", precisao);
 
     elsAjusteSimples.forEach(el => el.classList.toggle("oculto", precisao));
-    elsAjustePreciso.forEach(el => el.classList.toggle("oculto", !precisao));
+    elsAjustePrecisoWrapper.forEach(el => el.classList.toggle("oculto", !precisao));
 
-    // Ao trocar de modo, sincroniza o valor preciso com o que estava selecionado no modo simples.
+    // Ao trocar de modo, sincroniza o valor preciso com o que estava selecionado no modo
+    // simples — inclusive o "Tanto faz", que vira o checkbox marcado (e desabilita o campo).
     if (precisao) {
       elsAjusteSimples.forEach(elSimples => {
         const medida = elSimples.dataset.medida;
         const elPreciso = document.querySelector(`.ajuste-preciso[data-medida="${medida}"]`);
-        elPreciso.value = elSimples.value;
+        const elCheckbox = document.querySelector(`.ajuste-tanto-faz[data-medida="${medida}"]`);
+        if (elSimples.value === "na") {
+          elCheckbox.checked = true;
+          elPreciso.disabled = true;
+        } else {
+          elCheckbox.checked = false;
+          elPreciso.disabled = false;
+          elPreciso.value = elSimples.value;
+        }
       });
     }
 
@@ -776,11 +834,18 @@
   }
 
   // Lê o ajuste atual (em cm) para uma medida, considerando o modo ativo.
+  // Retorna null quando o usuário marcou "Tanto faz" — sem preferência pra essa medida.
   function lerAjuste(medida) {
-    const seletor = modoPreciso
-      ? `.ajuste-preciso[data-medida="${medida}"]`
-      : `.ajuste-simples[data-medida="${medida}"]`;
-    const el = document.querySelector(seletor);
+    if (modoPreciso) {
+      const elCheckbox = document.querySelector(`.ajuste-tanto-faz[data-medida="${medida}"]`);
+      if (elCheckbox.checked) return null;
+      const el = document.querySelector(`.ajuste-preciso[data-medida="${medida}"]`);
+      const valor = parseFloat(el.value);
+      return Number.isNaN(valor) ? 0 : valor;
+    }
+
+    const el = document.querySelector(`.ajuste-simples[data-medida="${medida}"]`);
+    if (el.value === "na") return null;
     const valor = parseFloat(el.value);
     return Number.isNaN(valor) ? 0 : valor;
   }
@@ -828,11 +893,12 @@
 
     // Medidas-alvo = medidas da peça de referência + ajuste pedido pelo usuário em cada
     // dimensão. Usadas só internamente para pontuar/colorir — quem aparece nos cards é
-    // sempre a diferença contra a peça de referência (ver diffRef* abaixo).
+    // sempre a diferença contra a peça de referência (ver diffRef* abaixo). Quando o
+    // usuário marca "Tanto faz" (ajuste null), não existe alvo pra essa medida.
     const alvo = {
-      largura: pecaReferencia.largura + ajustes.largura,
-      comprimento: pecaReferencia.comprimento + ajustes.comprimento,
-      manga: pecaReferencia.manga + ajustes.manga
+      largura: ajustes.largura === null ? null : pecaReferencia.largura + ajustes.largura,
+      comprimento: ajustes.comprimento === null ? null : pecaReferencia.comprimento + ajustes.comprimento,
+      manga: ajustes.manga === null ? null : pecaReferencia.manga + ajustes.manga
     };
 
     elTextoAlvo.textContent =
@@ -844,9 +910,9 @@
     // para cada uma:
     // - diffRef*: diferença real da peça candidata em relação à SUA peça de referência.
     //   É o número e a tag (ex.: "mais larga") que aparecem no card.
-    // - diffAlvo*: diferença em relação ao alvo ajustado (referência + ajuste pedido).
-    //   Não aparece na tela — serve só para o score de ordenação e para colorir o selo
-    //   (o quanto essa peça atende ao que foi pedido na etapa 2).
+    // - diffAlvo*: diferença em relação ao alvo ajustado (referência + ajuste pedido), ou
+    //   null quando a medida é "Tanto faz". Não aparece na tela — serve só para o score
+    //   de ordenação e para colorir o selo (o quanto a peça atende ao que foi pedido).
     const todasCandidatas = pecas
       .filter(p => p.id !== pecaReferencia.id)
       .map(p => {
@@ -854,17 +920,19 @@
         const diffRefComprimento = p.comprimento - pecaReferencia.comprimento;
         const diffRefManga = p.manga - pecaReferencia.manga;
 
-        const diffAlvoLargura = p.largura - alvo.largura;
-        const diffAlvoComprimento = p.comprimento - alvo.comprimento;
-        const diffAlvoManga = p.manga - alvo.manga;
+        const diffAlvoLargura = alvo.largura === null ? null : p.largura - alvo.largura;
+        const diffAlvoComprimento = alvo.comprimento === null ? null : p.comprimento - alvo.comprimento;
+        const diffAlvoManga = alvo.manga === null ? null : p.manga - alvo.manga;
 
-        // Soma ponderada das distâncias absolutas até o alvo em cada medida.
-        // Pesos maiores em PESO_LARGURA/PESO_COMPRIMENTO/PESO_MANGA (topo do arquivo)
-        // fazem essa medida pesar mais na hora de decidir o que é "parecido".
-        const score =
-          PESO_LARGURA * Math.abs(diffAlvoLargura) +
-          PESO_COMPRIMENTO * Math.abs(diffAlvoComprimento) +
-          PESO_MANGA * Math.abs(diffAlvoManga);
+        // Soma ponderada das distâncias absolutas até o alvo em cada medida. Pesos
+        // maiores em PESO_LARGURA/PESO_COMPRIMENTO/PESO_MANGA (topo do arquivo) fazem
+        // essa medida pesar mais na hora de decidir o que é "parecido". Medidas em
+        // "Tanto faz" (diffAlvo null) ficam de fora da soma: não pesam no score e não
+        // penalizam a peça por serem diferentes da referência.
+        let score = 0;
+        if (diffAlvoLargura !== null) score += PESO_LARGURA * Math.abs(diffAlvoLargura);
+        if (diffAlvoComprimento !== null) score += PESO_COMPRIMENTO * Math.abs(diffAlvoComprimento);
+        if (diffAlvoManga !== null) score += PESO_MANGA * Math.abs(diffAlvoManga);
 
         return {
           peca: p,
@@ -899,7 +967,7 @@
 
     for (const chave in CONFIG_MEDIDAS) {
       const ajuste = ajustes[chave];
-      if (Math.abs(ajuste) < 0.05) continue; // não pediu mudança nessa medida
+      if (ajuste === null || Math.abs(ajuste) < 0.05) continue; // não pediu mudança nessa medida (ou é "tanto faz")
 
       const chaveDiffRef = "diffRef" + chave.charAt(0).toUpperCase() + chave.slice(1);
       const direcaoPedida = ajuste > 0 ? "maior" : "menor";
@@ -925,6 +993,7 @@
   // Formata o ajuste pedido na etapa 2 (não a diferença de uma peça) para o resumo
   // "Você pediu: ..." no topo da etapa 3.
   function formatarAjuste(valor) {
+    if (valor === null) return "tanto faz";
     if (Math.abs(valor) < 0.05) return "igual";
     const sinal = valor > 0 ? "+" : "";
     return `${sinal}${formatarCm(valor)}`;
@@ -993,10 +1062,17 @@
       texto = `${cfg.sigla}: ${sinal}${formatarCm(diffArredondada)} · ${tag}`;
     }
 
-    const absolutaAlvo = Math.abs(diffAlvo);
-    let cor = "vermelho";
-    if (absolutaAlvo <= LIMITE_VERDE) cor = "verde";
-    else if (absolutaAlvo <= LIMITE_AMARELO) cor = "amarelo";
+    // Sem alvo (medida em "Tanto faz"): não há pedido pra comparar, então o selo fica
+    // neutro em vez de verde/amarelo/vermelho — só informa a diferença, sem julgar.
+    let cor;
+    if (diffAlvo === null) {
+      cor = "neutro";
+    } else {
+      const absolutaAlvo = Math.abs(diffAlvo);
+      cor = "vermelho";
+      if (absolutaAlvo <= LIMITE_VERDE) cor = "verde";
+      else if (absolutaAlvo <= LIMITE_AMARELO) cor = "amarelo";
+    }
 
     return `<span class="chip-diferenca ${cor}">${texto}</span>`;
   }
